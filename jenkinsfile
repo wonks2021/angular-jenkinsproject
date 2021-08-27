@@ -1,0 +1,51 @@
+pipeline {
+    agent {
+    node {
+        label 'slave1'
+    }
+}
+
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "M3"
+    }
+ 
+    stages {
+	    stage('gitclone') {
+		     steps {
+		         sh "sudo rm -rf /home/ubuntu/slave1"
+		         sh "sudo mkdir /home/ubuntu/slave1"
+				 sh "sudo git clone https://github.com/wonks2021/Continuous-Integration-Delivery-and-Deployment.git /home/ubuntu/slave1"
+			 }}
+        stage('Build') {
+            steps {
+               sh "cd /home/ubuntu/slave1/Chapter07/Code"
+			   sh "npm --version"
+			// sh "node node_modules/.bin/gulp --env=prod"
+			   sh "whoami"
+            }}
+        stage('removing html') {
+            steps {
+               sh "cd /var/www/html/"
+			   sh "sudo rm -rf /var/www/html/*"
+			   sh "sudo cp -r /home/ubuntu/slave1/Chapter05/Code/* /var/www/html/"
+            }}
+			
+            stage ('reports'){
+                // If Maven was able to run the tests, even if some of the test
+                // failed, record the test results and archive the jar file
+                steps {
+					sh "sudo chown -R 1001:1001 /home/jenkins/.npm"
+					sh "cd /var/www/html/"
+					sh "npm install karma-ie-launcher --save-dev"
+					sh "npm install karma-phantomjs-launcher --save-dev"
+					sh "sudo npm install browserify-istanbul"
+					sh "npm install karma-junit-reporter"
+                    sh "npm build"
+				    sh "karma start"
+					junit '/var/www/html/test/junit/*.xml'
+                    archiveArtifacts '/var/www/html/*.jar'
+                }
+            }
+        }
+    }
