@@ -42,7 +42,7 @@ pipeline {
 					sh "sudo npm install browserify-istanbul"
 					sh "npm install karma-junit-reporter"
                     sh "npm build"
-				    sh "karma start"
+				    sh "karma start /var/www/html/test/karma.config.js"
 					junit '/var/www/html/test/junit/*.xml'
                     archiveArtifacts '/var/www/html/*.jar'
                 }
